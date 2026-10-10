@@ -58,7 +58,7 @@ export const useFamilyStore = create<FamilyStore>()(
       merge: (persisted, current) => {
         const saved = (persisted as { state?: FamilyState } | undefined)?.state;
         if (!saved) return current;
-        return { ...current, state: { ...saved, settings: { ...DEFAULT_SETTINGS, ...saved.settings } } };
+        return { ...current, state: { ...saved, loans: saved.loans ?? [], settings: { ...DEFAULT_SETTINGS, ...saved.settings } } };
       },
       onRehydrateStorage: () => (store) => {
         store?.setHydrated();

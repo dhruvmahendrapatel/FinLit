@@ -18,7 +18,9 @@ import type {
   Kid,
   LedgerEntry,
   Lesson,
+  LessonProgress,
   LessonUnit,
+  Loan,
   Reward,
   RewardOrder,
 } from "./types";
@@ -55,6 +57,8 @@ export interface KidSummary {
   allowanceLabel: string | null;
   nextAllowanceOn: ISODate | null;
   interestRule: InterestRule | null;
+  /** Requested or active loan, if any */
+  activeLoan: Loan | null;
 }
 
 export function kidSummary(state: FamilyState, kidId: string, today: ISODate): KidSummary {
@@ -95,6 +99,7 @@ export function kidSummary(state: FamilyState, kidId: string, today: ISODate): K
     allowanceLabel: allowance ? describeCadence(allowance) : null,
     nextAllowanceOn,
     interestRule: state.interestRules.find((r) => r.kidId === kidId) ?? null,
+    activeLoan: state.loans.find((l) => l.kidId === kidId && (l.status === "requested" || l.status === "active")) ?? null,
   };
 }
 
@@ -124,6 +129,7 @@ export function choresForKid(state: FamilyState, kidId: string): ChoreBuckets {
 export interface PendingApprovals {
   chores: Chore[];
   rewardOrders: RewardOrder[];
+  loans: Loan[];
   count: number;
 }
 
@@ -132,7 +138,20 @@ export function pendingApprovals(state: FamilyState): PendingApprovals {
     .filter((c) => c.status === "submitted")
     .sort((a, b) => (a.submittedAt ?? "").localeCompare(b.submittedAt ?? ""));
   const rewardOrders = state.rewardOrders.filter((o) => o.status === "requested");
-  return { chores, rewardOrders, count: chores.length + rewardOrders.length };
+  const loans = state.loans.filter((l) => l.status === "requested");
+  return { chores, rewardOrders, loans, count: chores.length + rewardOrders.length + loans.length };
+}
+
+const LOAN_ORDER: Record<Loan["status"], number> = { active: 0, requested: 1, repaid: 2, declined: 3 };
+
+export function loansForKid(state: FamilyState, kidId: string): Loan[] {
+  return state.loans
+    .filter((l) => l.kidId === kidId)
+    .sort((a, b) => LOAN_ORDER[a.status] - LOAN_ORDER[b.status] || b.requestedAt.localeCompare(a.requestedAt));
+}
+
+export function simulationProgress(state: FamilyState, kidId: string, simId: string): LessonProgress | undefined {
+  return state.lessonProgress.find((p) => p.kidId === kidId && p.lessonId === simId);
 }
 
 export interface FamilyOverview {

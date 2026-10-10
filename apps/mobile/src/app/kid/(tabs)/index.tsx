@@ -1,4 +1,4 @@
-import { commands, JAR_KINDS, relativeDayLabel } from "@finlit/core";
+import { commands, JAR_KINDS, localizeLesson, relativeDayLabel } from "@finlit/core";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { StyleSheet, View } from "react-native";
@@ -10,7 +10,7 @@ import { useTheme } from "@/design";
 import { useActiveKid, useKidSummary, useNextLesson } from "@/hooks/use-family";
 import { useToday } from "@/hooks/use-today";
 import { tryCommand } from "@/lib/errors";
-import { useDispatch } from "@/store/family-store";
+import { useDispatch, useFamilyState } from "@/store/family-store";
 import { toast } from "@/store/toast-store";
 
 export default function KidHome() {
@@ -21,6 +21,7 @@ export default function KidHome() {
   const next = useNextLesson(kid?.id);
   const today = useToday();
   const dispatch = useDispatch();
+  const language = useFamilyState().settings.language;
   if (!kid || !summary) return null;
 
   const waiting = summary.pendingChores.filter((c) => c.status === "submitted");
@@ -127,7 +128,7 @@ export default function KidHome() {
             <View style={styles.lessonRow}>
               <Text style={{ fontSize: 40 }}>{next.lesson.emoji}</Text>
               <View style={{ flex: 1 }}>
-                <Text variant="h3">{next.lesson.title}</Text>
+                <Text variant="h3">{localizeLesson(next.lesson, language).title}</Text>
                 <Text variant="caption" tone="muted">
                   {next.lesson.minutes} min · +{next.lesson.xp} XP
                 </Text>

@@ -56,24 +56,28 @@ export type Feature =
   | "premium_rewards"
   | "school_link";
 
+export type FeatureStatus = "live" | "coming_soon";
+
 export interface FeatureInfo {
   title: string;
   description: string;
   emoji: string;
   /** Shown on the paywall in this order */
   order: number;
+  /** Honest paywall: only "live" features are sold as available today */
+  status: FeatureStatus;
 }
 
 export const FEATURE_INFO: Record<Feature, FeatureInfo> = {
-  ad_free: { title: "No ads, anywhere", description: "A calm, ad-free app for the whole family", emoji: "🧘", order: 1 },
-  unlimited_kids: { title: "Unlimited kids", description: "Free covers 2 kids. Premium covers everyone", emoji: "👨‍👩‍👧‍👦", order: 2 },
-  full_library: { title: "Every lesson & cartoon", description: "The full age-banded library in English, Hindi and more", emoji: "🎬", order: 3 },
-  simulations: { title: "Money simulations", description: "Run a chai stall, plan a trip, play the stock market", emoji: "🎮", order: 4 },
-  ai_coach: { title: "AI money coach", description: "Safe, age-gated answers to “why can't I buy it now?”", emoji: "🤖", order: 5 },
-  family_loans: { title: "Family loans & EMIs", description: "Borrow for big buys and repay in instalments", emoji: "🧾", order: 6 },
-  advanced_insights: { title: "Parent insights", description: "Weekly reports on saving habits and learning", emoji: "📈", order: 7 },
-  premium_rewards: { title: "Premium rewards", description: "Exclusive partner rewards in the shop", emoji: "🎁", order: 8 },
-  school_link: { title: "School link", description: "Pay for verified attendance streaks and report cards", emoji: "🏫", order: 9 },
+  ad_free: { title: "No ads, anywhere", description: "A calm, ad-free app for the whole family", emoji: "🧘", order: 1, status: "live" },
+  unlimited_kids: { title: "Unlimited kids", description: "Free covers 2 kids. Premium covers everyone", emoji: "👨‍👩‍👧‍👦", order: 2, status: "live" },
+  full_library: { title: "Every lesson & cartoon", description: "The full age-banded library in English, Hindi and more", emoji: "🎬", order: 3, status: "live" },
+  simulations: { title: "Money simulations", description: "Run a chai stall and learn cost, price and profit by doing", emoji: "🎮", order: 4, status: "live" },
+  ai_coach: { title: "AI money coach", description: "Safe, age-gated answers to “why can't I buy it now?”", emoji: "🤖", order: 5, status: "coming_soon" },
+  family_loans: { title: "Family loans & EMIs", description: "Borrow for big buys and repay in instalments with interest", emoji: "🧾", order: 6, status: "live" },
+  advanced_insights: { title: "Parent insights", description: "Weekly reports on saving habits and learning", emoji: "📈", order: 7, status: "coming_soon" },
+  premium_rewards: { title: "Premium rewards", description: "Exclusive partner rewards in the shop", emoji: "🎁", order: 8, status: "live" },
+  school_link: { title: "School link", description: "Pay for verified attendance streaks and report cards", emoji: "🏫", order: 9, status: "coming_soon" },
 };
 
 export const FREE_KID_LIMIT = 2;

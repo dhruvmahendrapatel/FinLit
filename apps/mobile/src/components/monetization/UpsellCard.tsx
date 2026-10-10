@@ -33,7 +33,7 @@ export function UpsellCard({ feature, headline, compact = false }: UpsellCardPro
               {headline ?? info.title}
             </Text>
             <Text variant="caption" color="#6B4E00">
-              {info.description} · from ₹83/month
+              {info.description} · from ₹83/month{info.status === "coming_soon" ? " · coming soon" : ""}
             </Text>
           </View>
           <Icon name="chevron-forward" size={20} color="#3A2A00" />

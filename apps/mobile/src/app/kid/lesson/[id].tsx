@@ -1,4 +1,4 @@
-import { commands, lessonById, levelFor, unitById, type Lesson } from "@finlit/core";
+import { commands, levelFor, localizedLessonById, unitById, type Lesson } from "@finlit/core";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -8,13 +8,14 @@ import { Button, Card, Confetti, Icon, IconButton, ProgressBar, Screen, Text } f
 import { useTheme } from "@/design";
 import { useActiveKid } from "@/hooks/use-family";
 import { haptic } from "@/lib/haptics";
-import { useDispatch } from "@/store/family-store";
+import { useDispatch, useFamilyState } from "@/store/family-store";
 
 type Result = ReturnType<typeof commands.completeLesson>;
 
 export default function LessonPlayer() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const lesson = useMemo(() => (id ? lessonById(id) : undefined), [id]);
+  const language = useFamilyState().settings.language;
+  const lesson = useMemo(() => (id ? localizedLessonById(id, language) : undefined), [id, language]);
   const router = useRouter();
   const kid = useActiveKid();
   if (!lesson || !kid) {

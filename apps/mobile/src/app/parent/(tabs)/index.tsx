@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import { StyleSheet, View } from "react-native";
 
 import { AdSlot, UpsellCard } from "@/components/monetization";
-import { ApprovalCard, KidSummaryCard, StatTile } from "@/components/parent";
+import { ApprovalCard, KidSummaryCard, LoanRequestCard, StatTile } from "@/components/parent";
 import { Button, Card, IconButton, ListRow, Money, Screen, SectionHeader, Text } from "@/components/ui";
 import { useTheme } from "@/design";
 import { useFamilyOverview } from "@/hooks/use-family";
@@ -39,6 +39,17 @@ export default function ParentHome() {
     tryCommand(() => dispatch((s, now) => commands.rejectChore(s, choreId, "Have another look and try again", now)));
     toast({ title: "Sent back", body: "They can fix it and resubmit", emoji: "🔁" });
   };
+  const approveLoan = (loanId: string, rate: number) => {
+    tryCommand(() => {
+      const res = dispatch((s, now) => commands.approveLoan(s, loanId, rate, now));
+      const kid = state.kids.find((k) => k.id === res.loan.kidId);
+      toast({ title: `Loan approved for ${kid?.name ?? "kid"}`, body: `${formatINR(res.loan.principalPaise, { showPaise: false })} is in their Spend jar; EMIs start on pocket-money day`, emoji: "🏦", tone: "success" });
+    });
+  };
+  const declineLoan = (loanId: string) => {
+    tryCommand(() => dispatch((s, now) => commands.declineLoan(s, loanId, "Let’s save up for it first", now)));
+    toast({ title: "Loan declined", body: "They can ask again later", emoji: "🙅" });
+  };
   const approveOrder = (orderId: string) => {
     tryCommand(() => dispatch((s) => commands.updateRewardOrder(s, orderId, "approved")));
     toast({ title: "Reward approved", emoji: "🎁", tone: "success" });
@@ -70,6 +81,9 @@ export default function ParentHome() {
           <View style={{ gap: space.md }}>
             {overview.approvals.chores.slice(0, 3).map((c) => (
               <ApprovalCard key={c.id} chore={c} kid={state.kids.find((k) => k.id === c.claimedBy)} onApprove={() => approve(c.id)} onReject={() => reject(c.id)} />
+            ))}
+            {overview.approvals.loans.map((l) => (
+              <LoanRequestCard key={l.id} loan={l} kid={state.kids.find((k) => k.id === l.kidId)} onApprove={(rate) => approveLoan(l.id, rate)} onDecline={() => declineLoan(l.id)} />
             ))}
             {overview.approvals.rewardOrders.map((o) => {
               const reward = rewardById(o.rewardId);
@@ -131,7 +145,7 @@ export default function ParentHome() {
       </View>
 
       <View style={{ marginTop: space.xl, gap: space.lg }}>
-        <UpsellCard feature="advanced_insights" headline="Weekly insights on saving habits" />
+        <UpsellCard feature="family_loans" headline="Family loans & EMIs: borrow for big buys" />
         <AdSlot audience="parent" placement="parent_home" />
       </View>
     </Screen>

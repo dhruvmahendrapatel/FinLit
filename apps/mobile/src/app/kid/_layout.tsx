@@ -24,6 +24,8 @@ export default function KidLayout() {
           <Stack.Screen name="goal/[id]" options={{ presentation: "modal" }} />
           <Stack.Screen name="jar/[jar]" options={{ presentation: "modal" }} />
           <Stack.Screen name="chore/[id]" options={{ presentation: "modal" }} />
+          <Stack.Screen name="loan/new" options={{ presentation: "modal" }} />
+          <Stack.Screen name="sim/chai" options={{ presentation: "fullScreenModal", animation: "slide_from_bottom" }} />
           <Stack.Screen name="extend" />
         </Stack>
       )}

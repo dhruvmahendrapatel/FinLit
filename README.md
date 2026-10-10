@@ -39,12 +39,12 @@ FinLit/
 │       ├── components/     ui (Button, Card, ProgressRing…), kid, parent, monetization, navigation
 │       ├── store/          zustand + AsyncStorage persistence, session (PIN unlock), billing, toasts
 │       └── hooks/, lib/
-├── packages/core/          Pure-TypeScript domain + 47 unit tests (vitest). No React.
+├── packages/core/          Pure-TypeScript domain + 60 unit tests (vitest). No React.
 │   └── src/
-│       ├── money, ledger, chores, goals, interest, allowance, lessons, streaks
+│       ├── money, ledger, chores, goals, interest, allowance, loans, simulation, lessons, streaks
 │       ├── entitlements, billing (RevenueCat-shaped), ads policy, consent (DPDP)
 │       ├── state, commands (every rule in one place), selectors, seed (demo family)
-│       └── content/        29 lessons across 9 NCFE/CBSE-mapped units, parent guides, rewards
+│       └── content/        29 lessons across 9 NCFE/CBSE-mapped units (English + Hindi), parent guides, rewards
 ├── supabase/migrations/    Postgres schema, RLS and RPCs for family sync (env-gated, not yet provisioned)
 ├── .github/workflows/      CI: tests · typecheck · lint · web build · Playwright e2e
 └── docs/                   architecture, monetization, design, backend, privacy, roadmap
@@ -77,7 +77,7 @@ APP_VARIANT=kid    npx expo run:android # Chillar Kids         (app.chillar.kid)
 
 Free core for every family, plus five streams modelled in the research (₹160 per active family a year by year 5):
 
-1. **Family Premium** — ₹999/year (7-day trial) or ₹99/month. Ad-free, unlimited kids, full lesson library, simulations, AI coach, family loans, insights, premium rewards. Paywall lives at `/parent/premium`; entitlements and gating in `packages/core/src/entitlements.ts`.
+1. **Family Premium** — ₹999/year (7-day trial) or ₹99/month. Live today: ad-free, unlimited kids, full lesson library, the chai-stall simulation, family loans & EMIs, premium rewards. Labelled coming soon on the paywall: AI coach, parent insights, school link. Paywall lives at `/parent/premium`; entitlements and gating in `packages/core/src/entitlements.ts`.
 2. **Bank & fund partners** — opted-in offers on parent screens only (`AdSlot audience="parent"`), kids' accounts and SIPs.
 3. **Rewards marketplace** — partner rewards earn a commission; parent-fulfilled rewards keep the loop alive for free (`/kid/shop`).
 4. **Ads** — contextual on kid screens, consented on parent screens, removed by Premium (`packages/core/src/ads.ts` encodes the DPDP rules).
@@ -92,7 +92,9 @@ The full kid and parent loops work end-to-end on device state, verified by an au
 - Chores with **photo proof** (camera/gallery), approval queue with the photo, pay-out into jars
 - Goals with parent match, Bank of Mum & Dad interest, compounding chart
 - 29 lessons across 9 units for all three age bands, streaks, XP, levels
-- Family Premium paywall with a mock billing provider; ad policy enforced (contextual-only for kids, none on Premium)
+- Family Premium paywall with a mock billing provider; ad policy enforced (contextual-only for kids, none on Premium); features not built yet are labelled "coming soon"
+- Premium features that are live: **family loans with EMIs** (kid requests, parent sets the rate, instalments auto-deduct on pocket-money day) and the **chai-stall simulation** (five days of price, cups and weather, XP once)
+- **Hindi** versions of every lesson, switchable from Settings
 - Parental controls: PIN gate, **enforced daily kid-mode time limit** with parent override, DPDP consent record, **JSON data export**, delete-all
 - **Local reminders** (allowance day, streak nudge, pending approvals)
 - Cloud sync and kid-device pairing are implemented and env-gated; see `docs/backend.md` to provision
