@@ -1,6 +1,8 @@
 -- Chillar backend: one family = one JSON state document, synced by every member device.
 -- Parents sign in with phone OTP; kid devices sign in anonymously and join with a pairing code.
 -- Row-level security scopes everything to family membership.
+--
+-- Applied to project fgrlwxzpmeffljphhmqb (ap-south-1, Mumbai) on 2026-10-10.
 
 create extension if not exists "pgcrypto";
 
@@ -47,13 +49,17 @@ create table public.command_log (
 create index command_log_family_idx on public.command_log (family_id, created_at desc);
 
 -- Short-lived codes a parent generates so a kid's device can join as that kid.
+-- Rows are never deleted: a code expires, is superseded (expires_at = now()) or is marked redeemed.
 create table public.pairing_codes (
   code text primary key,
   family_id uuid not null references public.families (id) on delete cascade,
   kid_id text not null,
   expires_at timestamptz not null,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  redeemed_at timestamptz
 );
+
+create index pairing_codes_family_kid_idx on public.pairing_codes (family_id, kid_id);
 
 alter table public.families enable row level security;
 alter table public.family_members enable row level security;
@@ -145,7 +151,9 @@ begin
   if not public.is_family_parent(p_family) then
     raise exception 'parents only';
   end if;
-  delete from public.pairing_codes where expires_at < now() or (family_id = p_family and kid_id = p_kid_id);
+  -- Supersede any live code for this kid.
+  update public.pairing_codes set expires_at = now()
+    where family_id = p_family and kid_id = p_kid_id and redeemed_at is null and expires_at > now();
   loop
     v_code := lpad((floor(random() * 1000000))::int::text, 6, '0');
     exit when not exists (select 1 from public.pairing_codes where code = v_code);
@@ -165,14 +173,15 @@ begin
   if auth.uid() is null then
     raise exception 'not signed in';
   end if;
-  select * into v_row from public.pairing_codes c where c.code = p_code and c.expires_at > now();
+  select * into v_row from public.pairing_codes c
+    where c.code = p_code and c.expires_at > now() and c.redeemed_at is null;
   if v_row.code is null then
     raise exception 'invalid or expired code';
   end if;
   insert into public.family_members (family_id, user_id, role, kid_id)
     values (v_row.family_id, auth.uid(), 'kid', v_row.kid_id)
     on conflict (family_id, user_id) do update set role = 'kid', kid_id = excluded.kid_id;
-  delete from public.pairing_codes c where c.code = p_code;
+  update public.pairing_codes c set redeemed_at = now() where c.code = p_code;
   return query select v_row.family_id, v_row.kid_id;
 end;
 $$;
@@ -189,6 +198,18 @@ language sql stable security definer set search_path = public as $$
   limit 1;
 $$;
 
+-- Signed-in users only. Kid devices sign in anonymously and still carry the `authenticated` role;
+-- nothing is callable with the bare publishable key.
+revoke execute on function public.is_family_member(uuid) from public, anon;
+revoke execute on function public.is_family_parent(uuid) from public, anon;
+revoke execute on function public.create_family(text, text, jsonb) from public, anon;
+revoke execute on function public.save_family_state(uuid, jsonb, bigint) from public, anon;
+revoke execute on function public.create_pairing_code(uuid, text) from public, anon;
+revoke execute on function public.redeem_pairing_code(text) from public, anon;
+revoke execute on function public.my_membership() from public, anon;
+
+grant execute on function public.is_family_member(uuid) to authenticated;
+grant execute on function public.is_family_parent(uuid) to authenticated;
 grant execute on function public.create_family(text, text, jsonb) to authenticated;
 grant execute on function public.save_family_state(uuid, jsonb, bigint) to authenticated;
 grant execute on function public.create_pairing_code(uuid, text) to authenticated;

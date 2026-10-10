@@ -14,3 +14,4 @@ export * from "./Icon";
 export * from "./IconButton";
 export * from "./Toast";
 export * from "./Confetti";
+export * from "./ProofImage";

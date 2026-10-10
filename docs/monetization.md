@@ -16,13 +16,13 @@ Research benchmark: Kutuki charges ₹1,999/year; education apps convert a media
 
 `ad_free`, `unlimited_kids`, `full_library`, `simulations`, `ai_coach`, `family_loans`, `advanced_insights`, `premium_rewards`, `school_link`.
 
-Each feature carries a `status` (`live` or `coming_soon`); the paywall shows a "Coming soon" chip for the latter so nothing is sold before it ships. Live today: ad-free, unlimited kids, full library, simulations (chai stall), family loans, premium rewards.
+Each feature carries a `status` (`live` or `coming_soon`); the paywall shows a "Coming soon" chip for the latter so nothing is sold before it ships. Live today: ad-free, unlimited kids, full library, simulations (chai stall, family trip budget), family loans, premium rewards.
 
 Gates in the UI:
 
 * 3rd kid → `UpsellCard feature="unlimited_kids"` in the add-kid flow.
 * Family loans → kids see "ask a parent" on the Goals tab; parents see the loans upsell on Home. Loan requests land in the approval queue with a rate picker (0/6/12/24%); EMIs are deducted automatically on pocket-money day (`runScheduledJobs`).
-* Chai-stall simulation → locked card on the kid's Learn tab; XP awarded once per simulation.
+* Simulations (chai stall, family trip budget) → locked cards on the kid's Learn tab; XP awarded once per simulation.
 * Premium lessons and lessons beyond the first two per unit → gold lock on the learning path; kids see "ask a parent", parents see the upsell on the Learn tab.
 * Premium-only rewards → lock badge in the shop; `commands.requestReward` throws `premium_required`.
 * Parent home → "Weekly insights" upsell.

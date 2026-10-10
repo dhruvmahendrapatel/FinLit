@@ -9,6 +9,7 @@ import { useTheme } from "@/design";
 import { useActiveKid } from "@/hooks/use-family";
 import { tryCommand } from "@/lib/errors";
 import { captureProofPhoto, type PhotoSource } from "@/lib/photo";
+import { uploadChoreProof } from "@/lib/storage";
 import { useDispatch, useFamilyState } from "@/store/family-store";
 import { toast } from "@/store/toast-store";
 
@@ -35,9 +36,13 @@ export default function SubmitChore() {
     else if (result.status === "denied") toast({ title: "Camera permission needed", body: "Allow the camera in Settings, or choose from your gallery", emoji: "📷" });
   };
 
-  const send = () => {
+  const send = async () => {
+    setBusy(true);
+    // Cloud-linked families get the photo in family-scoped Storage so the parent's phone can see it.
+    const proof = photo ? await uploadChoreProof(photo, chore.id) : null;
+    setBusy(false);
     const ok = tryCommand(() =>
-      dispatch((s, now) => commands.submitChore(s, chore.id, kid.id, now, { note: note.trim() || "Done!", ...(photo ? { photoUri: photo } : {}) })),
+      dispatch((s, now) => commands.submitChore(s, chore.id, kid.id, now, { note: note.trim() || "Done!", ...(proof ? { photoUri: proof.uri } : {}) })),
     );
     if (ok) {
       toast({ title: "Sent for approval", body: photo ? "Photo attached. Money lands when your parents say yes" : "Money lands when your parents say yes", emoji: "📨", tone: "success" });
@@ -106,7 +111,7 @@ export default function SubmitChore() {
         style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.md, fontFamily: fontFamily.semiBold, color: colors.text, marginTop: space.md }]}
       />
 
-      <Button title="Send for approval" size="lg" full onPress={send} style={{ marginTop: space.xl }} />
+      <Button title="Send for approval" size="lg" full loading={busy} onPress={() => void send()} style={{ marginTop: space.xl }} />
     </Screen>
   );
 }

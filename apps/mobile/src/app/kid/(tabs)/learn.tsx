@@ -1,6 +1,6 @@
-import { CHAI_SIM_ID, localizeLesson, localizeUnit, simulationProgress } from "@finlit/core";
+import { CHAI_SIM_ID, localizeLesson, localizeUnit, simulationProgress, TRIP_SIM_ID, type LessonProgress } from "@finlit/core";
 import { useRouter } from "expo-router";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 
 import { LessonNode, LevelBadge, StreakChip } from "@/components/kid";
 import { Button, Card, Icon, Screen, SectionHeader, Text } from "@/components/ui";
@@ -20,7 +20,8 @@ export default function KidLearn() {
   const ent = useEntitlements();
   const state = useFamilyState();
   const language = state.settings.language;
-  const simDone = kid ? simulationProgress(state, kid.id, CHAI_SIM_ID) : undefined;
+  const chaiDone = kid ? simulationProgress(state, kid.id, CHAI_SIM_ID) : undefined;
+  const tripDone = kid ? simulationProgress(state, kid.id, TRIP_SIM_ID) : undefined;
   if (!kid || !summary) return null;
 
   const nextLessonId = path.flatMap((u) => u.lessons).find((l) => l.availability.unlocked && !l.availability.completed)?.lesson.id ?? null;
@@ -42,24 +43,26 @@ export default function KidLearn() {
       </View>
 
       <View style={{ marginTop: space.xxl }}>
-        <SectionHeader title="Simulations" emoji="🎮" subtitle="Learn by running a business" />
-        <Card tint={ent.isPremium ? colors.surfaceAlt : colors.premiumSoft} borderColor="transparent" onPress={ent.isPremium ? () => router.push("/kid/sim/chai") : undefined} radius={radius.xl}>
-          <View style={styles.premiumRow}>
-            <Text style={{ fontSize: 40 }}>☕</Text>
-            <View style={{ flex: 1 }}>
-              <Text variant="h3">Run a chai stall</Text>
-              <Text variant="caption" tone="muted">
-                {simDone ? `Best: ${simDone.scorePercent === 100 ? "⭐⭐⭐" : simDone.scorePercent >= 66 ? "⭐⭐" : "⭐"} · play again any time` : "5 days at the school mela: set your price, make the chai, beat the weather. Up to 90 XP."}
-              </Text>
-            </View>
-            {ent.isPremium ? <Button title={simDone ? "Replay" : "Play"} size="sm" onPress={() => router.push("/kid/sim/chai")} /> : <Icon name="lock-closed" size={22} color={colors.premiumDark} />}
-          </View>
-          {!ent.isPremium ? (
-            <Text variant="caption" color="#6B4E00" style={{ marginTop: space.sm }}>
-              Simulations are part of Family Premium. Ask a parent to unlock them.
-            </Text>
-          ) : null}
-        </Card>
+        <SectionHeader title="Simulations" emoji="🎮" subtitle="Learn by running a business and planning a trip" />
+        <SimCard
+          emoji="☕"
+          title="Run a chai stall"
+          blurb="5 days at the school mela: set your price, make the chai, beat the weather. Up to 90 XP."
+          tint={colors.surfaceAlt}
+          progress={chaiDone}
+          isPremium={ent.isPremium}
+          onPlay={() => router.push("/kid/sim/chai")}
+        />
+        <SimCard
+          emoji="🧳"
+          title="Plan a family trip"
+          blurb="₹5,000, four people, two days in Lonavala. Travel, stay, food, fun... and a surprise. Up to 90 XP."
+          tint={colors.infoSoft}
+          progress={tripDone}
+          isPremium={ent.isPremium}
+          onPlay={() => router.push("/kid/sim/trip")}
+          style={{ marginTop: space.md }}
+        />
       </View>
 
       {path.map((unit) => (
@@ -116,6 +119,51 @@ export default function KidLearn() {
         </Card>
       ) : null}
     </Screen>
+  );
+}
+
+function starsFor(scorePercent: number): string {
+  return scorePercent === 100 ? "⭐⭐⭐" : scorePercent >= 66 ? "⭐⭐" : "⭐";
+}
+
+function SimCard({
+  emoji,
+  title,
+  blurb,
+  tint,
+  progress,
+  isPremium,
+  onPlay,
+  style,
+}: {
+  emoji: string;
+  title: string;
+  blurb: string;
+  tint: string;
+  progress: LessonProgress | undefined;
+  isPremium: boolean;
+  onPlay: () => void;
+  style?: StyleProp<ViewStyle>;
+}) {
+  const { colors, space, radius } = useTheme();
+  return (
+    <Card tint={isPremium ? tint : colors.premiumSoft} borderColor="transparent" onPress={isPremium ? onPlay : undefined} radius={radius.xl} style={style}>
+      <View style={styles.premiumRow}>
+        <Text style={{ fontSize: 40 }}>{emoji}</Text>
+        <View style={{ flex: 1 }}>
+          <Text variant="h3">{title}</Text>
+          <Text variant="caption" tone="muted">
+            {progress ? `Best: ${starsFor(progress.scorePercent)} · play again any time` : blurb}
+          </Text>
+        </View>
+        {isPremium ? <Button title={progress ? "Replay" : "Play"} size="sm" onPress={onPlay} /> : <Icon name="lock-closed" size={22} color={colors.premiumDark} />}
+      </View>
+      {!isPremium ? (
+        <Text variant="caption" color="#6B4E00" style={{ marginTop: space.sm }}>
+          Simulations are part of Family Premium. Ask a parent to unlock them.
+        </Text>
+      ) : null}
+    </Card>
   );
 }
 

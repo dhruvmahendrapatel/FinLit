@@ -21,6 +21,7 @@ export * from "./seed";
 export * from "./export";
 export * from "./loans";
 export * from "./simulation";
+export * from "./simulation-trip";
 export * from "./localize";
 export { LESSON_TRANSLATIONS_HI, UNIT_TITLES_HI } from "./content/lessons.hi";
 export { UNITS } from "./content/units";

@@ -1,8 +1,7 @@
 import { relativeDayLabel, type Chore } from "@finlit/core";
-import { Image } from "expo-image";
 import { StyleSheet, View } from "react-native";
 
-import { Button, Card, Chip, Money, Text } from "@/components/ui";
+import { Button, Card, Chip, Money, ProofImage, Text } from "@/components/ui";
 import { useTheme } from "@/design";
 
 export interface ChoreCardProps {
@@ -72,7 +71,7 @@ export function ChoreCard({ chore, today, actionLabel, onAction, secondaryLabel,
         </Text>
       ) : null}
       {chore.proofPhotoUri && (chore.status === "submitted" || chore.status === "approved") ? (
-        <Image source={{ uri: chore.proofPhotoUri }} style={[styles.proof, { borderRadius: radius.md, marginTop: space.md }]} contentFit="cover" accessibilityLabel="Proof photo" />
+        <ProofImage uri={chore.proofPhotoUri} style={[styles.proof, { borderRadius: radius.md, marginTop: space.md }]} accessibilityLabel="Proof photo" />
       ) : null}
       {chore.proofNote && chore.status === "submitted" ? (
         <Text variant="caption" tone="muted" style={{ marginTop: space.sm }}>

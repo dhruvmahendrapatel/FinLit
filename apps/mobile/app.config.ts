@@ -9,6 +9,14 @@ import type { ConfigContext, ExpoConfig } from "expo/config";
 type Variant = "family" | "parent" | "kid";
 const variant = (process.env.APP_VARIANT as Variant | undefined) ?? "family";
 
+/**
+ * Backend coordinates. The publishable key is safe to ship (row-level security guards every row);
+ * override per environment with EXPO_PUBLIC_SUPABASE_URL / _ANON_KEY, or set the URL to "off"
+ * to build without any cloud features.
+ */
+const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || "https://fgrlwxzpmeffljphhmqb.supabase.co";
+const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_hhXVijB_cORN-mGll2WzNg_TvUSM6yq";
+
 const names: Record<Variant, string> = {
   family: "Chillar",
   parent: "Chillar for Parents",
@@ -71,6 +79,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ],
   extra: {
     appVariant: variant,
+    supabaseUrl: SUPABASE_URL,
+    supabaseAnonKey: SUPABASE_ANON_KEY,
   },
   experiments: {
     typedRoutes: true,

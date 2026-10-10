@@ -14,7 +14,7 @@ Chillar is a family money-and-learning app. The **parent** who sets up the famil
 | Child first name, age band, avatar | Adapt lessons and the kid experience to the child's age | Yes |
 | Pocket-money ledger (allowance, chores, jar balances, goals) | The core product | Yes |
 | Learning progress (lessons, quiz scores, streaks, XP) | Progress, levels and parent reports | Yes |
-| Chore photos | Proof of a finished chore, shown only to the family | Optional, per chore |
+| Chore photos | Proof of a finished chore, shown only to the family (on the phone, or in a private family-scoped Storage bucket in Mumbai when cloud sync is on) | Optional, per chore |
 | School link (attendance, report cards) | Verified achievement rewards | Optional, opt-in, not yet live |
 | Personalised-ads preference on parent screens | Only affects the parent's own screens | Optional, opt-in |
 

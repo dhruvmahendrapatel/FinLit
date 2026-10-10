@@ -25,6 +25,7 @@ Chillar turns the market research in *Kids FinLit + Parenting App (India)* into 
   <img src="docs/screenshots/kid_jar_save.png" width="160" />
   <img src="docs/screenshots/parent_kid_demo_kid_1.png" width="160" />
   <img src="docs/screenshots/parent_premium.png" width="160" />
+  <img src="docs/screenshots/kid_sim_trip.png" width="160" />
 </p>
 
 ## What's in the box
@@ -45,7 +46,7 @@ FinLit/
 │       ├── entitlements, billing (RevenueCat-shaped), ads policy, consent (DPDP)
 │       ├── state, commands (every rule in one place), selectors, seed (demo family)
 │       └── content/        29 lessons across 9 NCFE/CBSE-mapped units (English + Hindi), parent guides, rewards
-├── supabase/migrations/    Postgres schema, RLS and RPCs for family sync (env-gated, not yet provisioned)
+├── supabase/migrations/    Postgres schema, RLS, RPCs and Storage policies for family sync (live in Mumbai)
 ├── .github/workflows/      CI: tests · typecheck · lint · web build · Playwright e2e
 └── docs/                   architecture, monetization, design, backend, privacy, roadmap
 ```
@@ -77,7 +78,7 @@ APP_VARIANT=kid    npx expo run:android # Chillar Kids         (app.chillar.kid)
 
 Free core for every family, plus five streams modelled in the research (₹160 per active family a year by year 5):
 
-1. **Family Premium** — ₹999/year (7-day trial) or ₹99/month. Live today: ad-free, unlimited kids, full lesson library, the chai-stall simulation, family loans & EMIs, premium rewards. Labelled coming soon on the paywall: AI coach, parent insights, school link. Paywall lives at `/parent/premium`; entitlements and gating in `packages/core/src/entitlements.ts`.
+1. **Family Premium** — ₹999/year (7-day trial) or ₹99/month. Live today: ad-free, unlimited kids, full lesson library, two money simulations (chai stall, family trip budget), family loans & EMIs, premium rewards. Labelled coming soon on the paywall: AI coach, parent insights, school link. Paywall lives at `/parent/premium`; entitlements and gating in `packages/core/src/entitlements.ts`.
 2. **Bank & fund partners** — opted-in offers on parent screens only (`AdSlot audience="parent"`), kids' accounts and SIPs.
 3. **Rewards marketplace** — partner rewards earn a commission; parent-fulfilled rewards keep the loop alive for free (`/kid/shop`).
 4. **Ads** — contextual on kid screens, consented on parent screens, removed by Premium (`packages/core/src/ads.ts` encodes the DPDP rules).
@@ -93,13 +94,13 @@ The full kid and parent loops work end-to-end on device state, verified by an au
 - Goals with parent match, Bank of Mum & Dad interest, compounding chart
 - 29 lessons across 9 units for all three age bands, streaks, XP, levels
 - Family Premium paywall with a mock billing provider; ad policy enforced (contextual-only for kids, none on Premium); features not built yet are labelled "coming soon"
-- Premium features that are live: **family loans with EMIs** (kid requests, parent sets the rate, instalments auto-deduct on pocket-money day) and the **chai-stall simulation** (five days of price, cups and weather, XP once)
+- Premium features that are live: **family loans with EMIs** (kid requests, parent sets the rate, instalments auto-deduct on pocket-money day) and two **money simulations**: the chai stall (five days of price, cups and weather) and the family trip budget (₹5,000 for four, six trade-offs and one surprise); XP once each
 - **Hindi** versions of every lesson, switchable from Settings
 - Parental controls: PIN gate, **enforced daily kid-mode time limit** with parent override, DPDP consent record, **JSON data export**, delete-all
 - **Local reminders** (allowance day, streak nudge, pending approvals)
-- Cloud sync and kid-device pairing are implemented and env-gated; see `docs/backend.md` to provision
+- Cloud sync, kid-device pairing and chore-photo storage run on Supabase (ap-south-1); see `docs/backend.md`
 
-Next (see `docs/roadmap.md`): provision the backend, RevenueCat/store products, DigiLocker consent, Hindi content, school ERP connector.
+Next (see `docs/roadmap.md`): SMS provider for parent OTP, RevenueCat/store products, DigiLocker consent, school ERP connector.
 
 ## License
 
