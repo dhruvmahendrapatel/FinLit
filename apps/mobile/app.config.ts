@@ -45,6 +45,22 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   plugins: [
     "expo-router",
     [
+      "expo-image-picker",
+      {
+        cameraPermission: "Chillar uses the camera so kids can show a finished chore.",
+        photosPermission: "Chillar uses your photos so kids can attach a picture of a finished chore.",
+      },
+    ],
+    "expo-sharing",
+    [
+      "expo-notifications",
+      {
+        icon: "./assets/images/notification-icon.png",
+        color: "#5B4DFF",
+        defaultChannel: "reminders",
+      },
+    ],
+    [
       "expo-splash-screen",
       {
         backgroundColor: "#5B4DFF",

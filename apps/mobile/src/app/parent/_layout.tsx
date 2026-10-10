@@ -25,6 +25,7 @@ export default function ParentLayout() {
         <Stack.Screen name="settings" />
         <Stack.Screen name="guide/[id]" />
         <Stack.Screen name="add-kid" options={{ presentation: "modal" }} />
+        <Stack.Screen name="sync" />
       </Stack>
     </ThemeProvider>
   );

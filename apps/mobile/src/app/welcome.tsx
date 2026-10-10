@@ -64,7 +64,8 @@ export default function Welcome() {
         <Animated.View entering={FadeInUp.delay(450).duration(500)} style={{ gap: space.sm, marginTop: space.sm }}>
           <Button title="Set up my family" size="lg" full onPress={() => router.push("/onboarding/parent")} />
           <Button title={onboarded ? "Continue" : "Try the demo family"} variant="secondary" size="lg" full onPress={onboarded ? () => router.replace("/who") : tryDemo} />
-          <Text variant="caption" tone="soft" align="center" style={{ marginTop: space.sm }}>
+          <Button title="I’m a kid · join with a code" variant="ghost" size="sm" full onPress={() => router.push("/join")} />
+          <Text variant="caption" tone="soft" align="center" style={{ marginTop: space.xs }}>
             Free for every family · No ads inside lessons · Parent-controlled, DPDP-ready
           </Text>
         </Animated.View>

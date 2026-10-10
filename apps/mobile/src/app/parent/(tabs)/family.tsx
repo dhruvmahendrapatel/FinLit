@@ -71,7 +71,8 @@ export default function ParentFamily() {
         <Card padding={space.sm}>
           <ListRow emoji="🧑" leadingColor={colors.primarySoft} title={state.parent?.name ?? "Parent"} subtitle={state.parent?.phoneMasked} onPress={() => router.push("/parent/settings")} trailing={<Icon name="chevron-forward" size={18} color={colors.textSoft} />} />
           <ListRow emoji="🛡️" leadingColor={colors.successSoft} title="Privacy & consent" subtitle={`DPDP notice v${state.consent?.version ?? "—"} · export or delete any time`} onPress={() => router.push("/parent/settings")} trailing={<Icon name="chevron-forward" size={18} color={colors.textSoft} />} />
-          <ListRow emoji="⚙️" leadingColor={colors.bgAlt} title="Settings" subtitle="PIN, kid-mode time limit, language" onPress={() => router.push("/parent/settings")} trailing={<Icon name="chevron-forward" size={18} color={colors.textSoft} />} last />
+          <ListRow emoji="☁️" leadingColor={colors.infoSoft} title="Cloud sync & kid devices" subtitle="Same family on every phone" onPress={() => router.push("/parent/sync")} trailing={<Icon name="chevron-forward" size={18} color={colors.textSoft} />} />
+          <ListRow emoji="⚙️" leadingColor={colors.bgAlt} title="Settings" subtitle="PIN, kid-mode time limit, reminders, language" onPress={() => router.push("/parent/settings")} trailing={<Icon name="chevron-forward" size={18} color={colors.textSoft} />} last />
         </Card>
       </View>
 

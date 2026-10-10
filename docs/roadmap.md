@@ -7,25 +7,29 @@ Mapped to the research's phases and 90-day plan. ✅ = in this repo.
 - ✅ Parent onboarding with DPDP consent scopes and parent PIN
 - ✅ Kids with age bands, avatars, allowance rules (weekly/monthly), jar allocation
 - ✅ Pocket-money ledger in integer paise; Spend/Save/Share/Grow jars
-- ✅ Chore board: post → claim → submit → approve/reject, recurring chores, photo-proof hook
+- ✅ Chore board: post → claim → submit (with photo proof + note) → approve/reject, recurring chores
 - ✅ Goals with parent match; Bank of Mum & Dad monthly interest; compounding chart
-- ✅ 17 lessons / 9 units mapped to NCFE & CBSE themes, quizzes, XP, levels, streaks
+- ✅ 29 lessons / 9 units mapped to NCFE & CBSE themes, quizzes, XP, levels, streaks
 - ✅ Scam & UPI safety lessons for 9–17
 - ✅ Parent guides
 - ✅ Family Premium plans, entitlements, paywall, mock billing (RevenueCat-shaped)
 - ✅ Ad policy + placeholder slots (contextual for kids, consented for parents, none on Premium)
 - ✅ Rewards marketplace with partner and parent-fulfilled rewards
-- ✅ Demo family, 45 core unit tests, typecheck, lint, web export, screenshots
+- ✅ Enforced daily kid-mode time limit with a gentle stop screen and parent PIN override
+- ✅ JSON data export and delete-all (DPDP access, portability, erasure)
+- ✅ Local reminders: allowance day, streak nudge, pending approvals
+- ✅ Cloud sync + kid-device pairing, built and env-gated (Supabase schema, RLS, RPCs, realtime, conflict replay)
+- ✅ Demo family, 47 core unit tests, typecheck, lint, web export, Playwright e2e smoke in CI, EAS build profiles
 
 ## Next 90 days
 
-1. **Backend & auth** – Supabase (Postgres + RLS per family), phone OTP login, sync `FamilyState` + command log; DigiLocker consent token in the pilot.
+1. **Provision the backend** – create the Supabase project (Mumbai region), apply `supabase/migrations`, enable phone OTP + anonymous auth, set EAS secrets; run the parent-phone → kid-phone pairing smoke test. Add Supabase Storage for chore photos.
 2. **Store billing** – RevenueCat adapter for `BillingProvider`, products `chillar_premium_*`, server-side receipt validation.
-3. **Photo proof** – `expo-image-picker` on chore submit; parent sees the photo in the approval card.
+3. **DigiLocker consent** – verifiable parental consent token in the pilot (DPDP Rule 10).
 4. **Hindi** – lesson content in Hindi (the `language` setting exists), Baloo 2 covers Devanagari.
 5. **Cartoon episodes** – 3 pilot episodes (one per band) on YouTube, embedded in lessons as "watch" cards.
-6. **Daily kid-mode limit** – enforce `dailyKidMinutes` with a gentle stop screen.
-7. **Analytics & experiments** – privacy-preserving, no ad IDs in the kid build.
+6. **Analytics & experiments** – privacy-preserving, no ad IDs in the kid build.
+7. **Device QA** – EAS development builds on iOS and Android (camera, notifications, sharing are native-only paths exercised by hand).
 
 ## V2
 

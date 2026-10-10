@@ -36,8 +36,7 @@ export default function KidHome() {
 
   const claim = (choreId: string) =>
     tryCommand(() => dispatch((s, now) => commands.claimChore(s, choreId, kid.id, now))) && toast({ title: "It's yours!", body: "Mark it done when you finish", emoji: "💪" });
-  const submit = (choreId: string) =>
-    tryCommand(() => dispatch((s, now) => commands.submitChore(s, choreId, kid.id, now, { note: "Done!" }))) && toast({ title: "Sent for approval", body: "Your parents will check it soon", emoji: "📨", tone: "success" });
+  const submit = (choreId: string) => router.push({ pathname: "/kid/chore/[id]", params: { id: choreId } });
 
   return (
     <Screen tabBarInset>

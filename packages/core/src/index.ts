@@ -18,6 +18,7 @@ export * from "./state";
 export * as commands from "./commands";
 export * from "./selectors";
 export * from "./seed";
+export * from "./export";
 export { UNITS } from "./content/units";
 export { LESSONS } from "./content/lessons";
 export { PARENT_GUIDES } from "./content/guides";
