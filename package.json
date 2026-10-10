@@ -1,0 +1,19 @@
+{
+  "name": "finlit",
+  "private": true,
+  "description": "Chillar — a family money & learning app for Indian kids (Parent app + Kid app on one shared core)",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "mobile": "npm run start -w apps/mobile",
+    "mobile:web": "npm run web -w apps/mobile",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
