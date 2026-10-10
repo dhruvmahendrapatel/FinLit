@@ -72,7 +72,7 @@ export const FEATURE_INFO: Record<Feature, FeatureInfo> = {
   ad_free: { title: "No ads, anywhere", description: "A calm, ad-free app for the whole family", emoji: "🧘", order: 1, status: "live" },
   unlimited_kids: { title: "Unlimited kids", description: "Free covers 2 kids. Premium covers everyone", emoji: "👨‍👩‍👧‍👦", order: 2, status: "live" },
   full_library: { title: "Every lesson & cartoon", description: "The full age-banded library in English, Hindi and more", emoji: "🎬", order: 3, status: "live" },
-  simulations: { title: "Money simulations", description: "Run a chai stall and learn cost, price and profit by doing", emoji: "🎮", order: 4, status: "live" },
+  simulations: { title: "Money simulations", description: "Run a chai stall or plan a family trip: learn cost, price, budgets and trade-offs by doing", emoji: "🎮", order: 4, status: "live" },
   ai_coach: { title: "AI money coach", description: "Safe, age-gated answers to “why can't I buy it now?”", emoji: "🤖", order: 5, status: "coming_soon" },
   family_loans: { title: "Family loans & EMIs", description: "Borrow for big buys and repay in instalments with interest", emoji: "🧾", order: 6, status: "live" },
   advanced_insights: { title: "Parent insights", description: "Weekly reports on saving habits and learning", emoji: "📈", order: 7, status: "coming_soon" },

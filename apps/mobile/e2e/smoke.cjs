@@ -1,7 +1,8 @@
 /*
  * End-to-end smoke test over the exported web build (dist/). Runs the real UI:
  *   demo family → kid claims & submits a chore → parent approves → kid finishes a lesson
- *   → parent buys Premium → kid-mode time limit blocks the kid screen.
+ *   → parent buys Premium → kid plays the chai stall and family trip simulations
+ *   → kid-mode time limit blocks the kid screen.
  * Usage: npx expo export --platform web && node e2e/smoke.cjs
  */
 const { chromium } = require("playwright");
@@ -171,6 +172,36 @@ async function step(name, fn) {
     await page.getByText(/^Collect \d+ XP$/).click();
     await page.getByText(/XP collected!/).waitFor();
     await shot("08-chai-stall-results");
+  });
+
+  await step("kid plans the family trip within budget and collects XP", async () => {
+    await page.goto(`${BASE}/kid/sim/trip`, { waitUntil: "networkidle" });
+    await page.getByText("Family trip 🧳").waitFor();
+    await page.getByText(/^of ₹5,000$/).waitFor();
+    // Sensible middle road: cheap train, homestay, thali, Tiger Point, the mid-cost fix for whichever surprise hits, chikki.
+    const picks = ["Local train", "Homestay", "Thali restaurant", "Tiger Point & Bhushi Dam", /^(Wait it out at a chai shop|Pay a roadside mechanic|Rest with a lemon soda)$/, "Chikki for everyone at home"];
+    for (let i = 0; i < picks.length; i++) {
+      await page.getByText(`Choice ${i + 1} of 6`).waitFor();
+      if (i === 4) await page.getByText("Unexpected!").waitFor();
+      await page.getByRole("button", { name: picks[i] }).click();
+      await page.getByText("Budget left after this").first().waitFor();
+      await page.getByText("Lock it in").click();
+      await page.getByText("Spent so far").waitFor();
+      await page.getByText(/^💡 /).waitFor();
+      await page.getByText(i === 5 ? "See how it went" : "Next stop").click();
+    }
+    await page.getByText("Trip over!").waitFor();
+    await page.getByText("⭐⭐⭐").waitFor();
+    await page.getByText("You spent").waitFor();
+    await page.getByText(/left over$/).waitFor();
+    await page.getByText("Total vs budget").waitFor();
+    await page.getByText("What this trip taught").waitFor();
+    await page.getByText(/^Collect \d+ XP$/).click();
+    await page.getByText(/XP collected!/).waitFor();
+    await shot("08b-family-trip-results");
+    await page.goto(`${BASE}/kid/learn`, { waitUntil: "networkidle" });
+    await page.getByText("Plan a family trip").waitFor();
+    await page.getByText("Best: ⭐⭐⭐ · play again any time").first().waitFor();
   });
 
   await step("Hindi lesson content switches from Settings", async () => {
