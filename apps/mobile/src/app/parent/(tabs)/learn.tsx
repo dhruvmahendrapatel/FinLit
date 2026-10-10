@@ -50,7 +50,7 @@ export default function ParentLearn() {
       </View>
 
       <View style={{ marginTop: space.xl }}>
-        <UpsellCard feature="full_library" headline="Unlock every lesson, simulation and the AI coach" />
+        <UpsellCard feature="full_library" headline="Unlock every lesson and the chai-stall simulation" />
       </View>
 
       <View style={{ marginTop: space.xxl }}>

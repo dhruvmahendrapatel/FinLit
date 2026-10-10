@@ -94,9 +94,12 @@ export default function Settings() {
           <Text variant="bodyStrong" style={{ marginTop: space.lg }}>
             Lesson language
           </Text>
+          <Text variant="caption" tone="muted">
+            Lesson stories and quizzes switch language; the app’s buttons stay in English for now.
+          </Text>
           <View style={[styles.wrap, { marginTop: space.sm }]}>
             {(["en", "hi"] as Language[]).map((l) => (
-              <Chip key={l} label={l === "en" ? "English" : "हिन्दी (coming soon)"} selected={state.settings.language === l} onPress={() => dispatch((s) => commands.updateSettings(s, { language: l }))} />
+              <Chip key={l} label={l === "en" ? "English" : "हिन्दी"} selected={state.settings.language === l} onPress={() => dispatch((s) => commands.updateSettings(s, { language: l }))} />
             ))}
           </View>
         </Card>

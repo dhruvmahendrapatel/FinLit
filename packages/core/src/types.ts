@@ -89,6 +89,8 @@ export type LedgerKind =
   | "goal_contribution"
   | "reward_purchase"
   | "share_donation"
+  | "loan"
+  | "loan_repayment"
   | "adjustment";
 
 export interface LedgerEntry {
@@ -151,6 +153,33 @@ export interface Goal {
   status: GoalStatus;
   createdAt: ISODateTime;
   reachedAt?: ISODateTime;
+}
+
+// ---------- Loans ----------
+
+export type LoanStatus = "requested" | "active" | "repaid" | "declined";
+
+/** "Family loan": the kid borrows from the parent-bank and repays in instalments (EMIs) with interest. */
+export interface Loan {
+  id: string;
+  kidId: string;
+  purpose: string;
+  emoji: string;
+  principalPaise: Paise;
+  /** Flat annual rate the parent sets at approval */
+  annualRatePercent: number;
+  instalments: number;
+  cadence: AllowanceCadence;
+  /** Total to repay: principal + interest */
+  totalPaise: Paise;
+  /** Regular instalment (the last one absorbs rounding) */
+  emiPaise: Paise;
+  repaidPaise: Paise;
+  status: LoanStatus;
+  requestedAt: ISODateTime;
+  approvedAt?: ISODateTime;
+  closedAt?: ISODateTime;
+  declineReason?: string;
 }
 
 // ---------- Allowance & interest ----------

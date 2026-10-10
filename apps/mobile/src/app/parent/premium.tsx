@@ -89,12 +89,15 @@ export default function Premium() {
             <Animated.View key={f.feature} entering={FadeInUp.delay(i * 40)} style={[styles.feature, i > 0 && { borderTopColor: colors.border, borderTopWidth: 1 }]}>
               <Text style={{ fontSize: 24 }}>{f.emoji}</Text>
               <View style={{ flex: 1 }}>
-                <Text variant="bodyStrong">{f.title}</Text>
+                <View style={styles.featureTitle}>
+                  <Text variant="bodyStrong">{f.title}</Text>
+                  {f.status === "coming_soon" ? <Chip label="Coming soon" size="sm" tone="neutral" /> : null}
+                </View>
                 <Text variant="caption" tone="muted">
                   {f.description}
                 </Text>
               </View>
-              <Icon name="checkmark-circle" size={22} color={colors.success} />
+              <Icon name={f.status === "coming_soon" ? "time-outline" : "checkmark-circle"} size={22} color={f.status === "coming_soon" ? colors.textSoft : colors.success} />
             </Animated.View>
           ))}
         </Card>
@@ -150,7 +153,7 @@ export default function Premium() {
             />
             <Button title="Restore purchases" variant="ghost" size="sm" full loading={busy === "restore"} onPress={() => void restore()} />
             <Text variant="caption" tone="soft" align="center">
-              Billed through the App Store or Google Play. Recurring, cancel anytime. Free families keep all core features: jars, chores, goals and the first lessons of every unit.
+              Billed through the App Store or Google Play. Recurring, cancel anytime. Free families keep all core features: jars, chores, goals and the first lessons of every unit. Features marked “coming soon” are included when they launch.
             </Text>
           </>
         )}
@@ -163,6 +166,7 @@ const styles = StyleSheet.create({
   hero: { borderBottomLeftRadius: 36, borderBottomRightRadius: 36 },
   heroTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   feature: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12 },
+  featureTitle: { flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" },
   plan: { flexDirection: "row", alignItems: "center", gap: 12, padding: 16, borderWidth: 2 },
   planTitle: { flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" },
   radio: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, alignItems: "center", justifyContent: "center" },

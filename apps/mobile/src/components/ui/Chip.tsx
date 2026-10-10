@@ -63,7 +63,7 @@ export function Chip({ label, tone = "neutral", emoji, icon, selected = false, o
   );
   if (!onPress) return content;
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => pressed && styles.pressed}>
+    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={({ pressed }) => pressed && styles.pressed}>
       {content}
     </Pressable>
   );

@@ -10,6 +10,7 @@ import type {
   Kid,
   LedgerEntry,
   LessonProgress,
+  Loan,
   Parent,
   RewardOrder,
   Streak,
@@ -51,6 +52,7 @@ export interface FamilyState {
   lessonProgress: LessonProgress[];
   streaks: Streak[];
   rewardOrders: RewardOrder[];
+  loans: Loan[];
   planId: PlanId;
   billing: CustomerInfo | null;
   settings: FamilySettings;
@@ -71,6 +73,7 @@ export function emptyState(): FamilyState {
     lessonProgress: [],
     streaks: [],
     rewardOrders: [],
+    loans: [],
     planId: "free",
     billing: null,
     settings: { ...DEFAULT_SETTINGS },

@@ -136,6 +136,53 @@ async function step(name, fn) {
     if (premiumNote !== 0) throw new Error("premium lock notice still shown");
   });
 
+
+  await step("kid asks for a family loan, parent approves it, EMIs show on the loan", async () => {
+    await page.goto(`${BASE}/kid/goals`, { waitUntil: "networkidle" });
+    await page.getByText("Borrow for it").click();
+    await page.waitForURL(/\/kid\/loan\/new/);
+    await page.getByRole("button", { name: "₹500" }).click();
+    await page.getByRole("button", { name: /^4 (weeks|months)$/ }).click();
+    await page.getByText("Ask for the loan").click();
+    await page.getByText("Loan requested").waitFor();
+    await unlockParent();
+    await page.goto(`${BASE}/parent`, { waitUntil: "networkidle" });
+    await page.getByText(/wants to borrow ₹500/).waitFor();
+    await page.getByRole("button", { name: "12% a year" }).click();
+    await page.getByText("Approve loan").click();
+    await page.getByText(/Loan approved/).waitFor();
+    await page.goto(`${BASE}/kid/goals`, { waitUntil: "networkidle" });
+    await page.getByText("Next EMI").waitFor();
+    await page.getByText("Repaying").waitFor();
+    await shot("07-loan-active");
+  });
+
+  await step("kid runs the chai stall simulation and collects XP", async () => {
+    await page.goto(`${BASE}/kid/sim/chai`, { waitUntil: "networkidle" });
+    for (let day = 1; day <= 5; day++) {
+      await page.getByText(`Day ${day} of 5`).waitFor();
+      await page.getByRole("button", { name: "₹15" }).click();
+      await page.getByRole("button", { name: "40 cups" }).click();
+      await page.getByText("Open the stall!").click();
+      await page.getByText(/Wanted/).waitFor();
+      await page.getByText(day === 5 ? "See results" : "Next day").click();
+    }
+    await page.getByText("Your 5-day total").waitFor();
+    await page.getByText(/^Collect \d+ XP$/).click();
+    await page.getByText(/XP collected!/).waitFor();
+    await shot("08-chai-stall-results");
+  });
+
+  await step("Hindi lesson content switches from Settings", async () => {
+    await page.goto(`${BASE}/parent/settings`, { waitUntil: "networkidle" });
+    await page.getByRole("button", { name: "हिन्दी" }).click();
+    await page.goto(`${BASE}/kid/learn`, { waitUntil: "networkidle" });
+    await page.getByText("बचत और लक्ष्य").waitFor();
+    await shot("09-learn-hindi");
+    await page.goto(`${BASE}/parent/settings`, { waitUntil: "networkidle" });
+    await page.getByRole("button", { name: "English" }).click();
+  });
+
   await step("kid-mode daily limit shows the time-up screen", async () => {
     await page.evaluate(() => {
       const raw = localStorage.getItem("chillar.session.v1");

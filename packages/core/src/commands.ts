@@ -21,6 +21,7 @@ import { contributeToGoal as contributeDomain, createGoal as createGoalDomain, r
 import { newId } from "./ids";
 import { createEntry, createSplitEntries, debitJar, jarBalances } from "./ledger";
 import { completeLesson as completeLessonDomain, levelFor, type QuizResult } from "./lessons";
+import { approveLoan as approveLoanDomain, declineLoan as declineLoanDomain, loanProgress, repayLoan as repayLoanDomain, requestLoan as requestLoanDomain } from "./loans";
 import type { Paise } from "./money";
 import { LESSONS } from "./content/lessons";
 import { REWARDS } from "./content/rewards";
@@ -39,6 +40,7 @@ import {
   type JarAllocation,
   type JarKind,
   type Kid,
+  type Loan,
   type RewardOrder,
   type Streak,
 } from "./types";
@@ -209,6 +211,7 @@ export function removeKid(state: FamilyState, kidId: string): FamilyState {
     lessonProgress: state.lessonProgress.filter((p) => p.kidId !== kidId),
     streaks: state.streaks.filter((s) => s.kidId !== kidId),
     rewardOrders: state.rewardOrders.filter((o) => o.kidId !== kidId),
+    loans: state.loans.filter((l) => l.kidId !== kidId),
   };
 }
 
@@ -455,12 +458,107 @@ export function updateRewardOrder(state: FamilyState, orderId: string, status: R
   return { ...state, rewardOrders: replaceById(state.rewardOrders, { ...order, status }) };
 }
 
+// ───────────────────────── loans ─────────────────────────
+
+function requireLoan(state: FamilyState, loanId: string): Loan {
+  const loan = state.loans.find((l) => l.id === loanId);
+  assert(loan, "loan_not_found", "Loan not found");
+  return loan;
+}
+
+export interface RequestLoanInput {
+  kidId: string;
+  purpose: string;
+  emoji: string;
+  principalPaise: Paise;
+  instalments: number;
+}
+
+/** Kid asks the parent-bank for a loan (Family Premium). One open loan per kid. */
+export function requestLoan(state: FamilyState, input: RequestLoanInput, now: ISODateTime): { state: FamilyState; loan: Loan } {
+  requireKid(state, input.kidId);
+  if (!canUse(state.planId, "family_loans")) {
+    throw new DomainError("premium_required", "Family loans are part of Family Premium");
+  }
+  const open = state.loans.find((l) => l.kidId === input.kidId && (l.status === "requested" || l.status === "active"));
+  assert(!open, "loan_open", open?.status === "active" ? "Finish repaying your current loan first" : "You already have a loan request waiting");
+  const cadence = state.allowanceRules.find((r) => r.kidId === input.kidId)?.cadence ?? "weekly";
+  const loan = requestLoanDomain({ ...input, cadence, now });
+  return { state: { ...state, loans: [...state.loans, loan] }, loan };
+}
+
+export function approveLoan(state: FamilyState, loanId: string, annualRatePercent: number, now: ISODateTime): { state: FamilyState; loan: Loan } {
+  const result = approveLoanDomain(requireLoan(state, loanId), annualRatePercent, now);
+  return { state: { ...state, loans: replaceById(state.loans, result.loan), ledger: [...state.ledger, result.entry] }, loan: result.loan };
+}
+
+export function declineLoan(state: FamilyState, loanId: string, reason: string, now: ISODateTime): FamilyState {
+  const loan = declineLoanDomain(requireLoan(state, loanId), reason, now);
+  return { ...state, loans: replaceById(state.loans, loan) };
+}
+
+/** Kid pays early from the Spend jar (any amount up to what is owed and what the jar holds). */
+export function repayLoan(state: FamilyState, loanId: string, amountPaise: Paise, now: ISODateTime): { state: FamilyState; paidPaise: Paise; loan: Loan } {
+  const loan = requireLoan(state, loanId);
+  const spend = jarBalances(state.ledger, loan.kidId).spend;
+  const result = repayLoanDomain(loan, amountPaise, spend, now);
+  assert(result.paidPaise > 0, "insufficient_funds", "Nothing in the Spend jar to pay with");
+  return {
+    state: { ...state, loans: replaceById(state.loans, result.loan), ledger: result.entry ? [...state.ledger, result.entry] : state.ledger },
+    paidPaise: result.paidPaise,
+    loan: result.loan,
+  };
+}
+
+// ───────────────────────── simulations ─────────────────────────
+
+export interface SimulationScoreInput {
+  /** 0–100 */
+  percent: number;
+  xp: number;
+}
+
+export interface CompleteSimulationOutcome {
+  state: FamilyState;
+  xpEarned: number;
+  firstTime: boolean;
+  leveledUp: boolean;
+}
+
+/** Record a finished simulation as learning progress; XP is awarded once per simulation. */
+export function completeSimulation(state: FamilyState, kidId: string, simId: string, score: SimulationScoreInput, now: ISODateTime): CompleteSimulationOutcome {
+  const kid = requireKid(state, kidId);
+  if (!canUse(state.planId, "simulations")) {
+    throw new DomainError("premium_required", "Simulations are part of Family Premium");
+  }
+  const previous = state.lessonProgress.find((p) => p.kidId === kidId && p.lessonId === simId);
+  const firstTime = !previous;
+  const xpEarned = firstTime ? Math.max(0, Math.round(score.xp)) : 0;
+  const progress = {
+    kidId,
+    lessonId: simId,
+    completedAt: now,
+    scorePercent: Math.max(previous?.scorePercent ?? 0, Math.round(score.percent)),
+    xpEarned: (previous?.xpEarned ?? 0) + xpEarned,
+  };
+  const before = levelFor(kid.xp).level;
+  const updatedKid: Kid = { ...kid, xp: kid.xp + xpEarned };
+  let next: FamilyState = {
+    ...state,
+    kids: replaceById(state.kids, updatedKid),
+    lessonProgress: [...state.lessonProgress.filter((p) => !(p.kidId === kidId && p.lessonId === simId)), progress],
+  };
+  next = touchStreak(next, kidId, now);
+  return { state: next, xpEarned, firstTime, leveledUp: levelFor(updatedKid.xp).level > before };
+}
+
 // ───────────────────────── scheduled jobs ─────────────────────────
 
 export interface ScheduledJobsOutcome {
   state: FamilyState;
   allowancesPaid: Array<{ kidId: string; amountPaise: Paise }>;
   interestAccrued: Array<{ kidId: string; amountPaise: Paise }>;
+  loanRepayments: Array<{ kidId: string; amountPaise: Paise }>;
 }
 
 /** Pay any due allowances and this month's interest. Safe to call on every app open. */
@@ -475,6 +573,19 @@ export function runScheduledJobs(state: FamilyState, now: ISODateTime): Schedule
     allowancesPaid.push({ kidId: rule.kidId, amountPaise: rule.amountPaise });
     return paid.rule;
   });
+  // EMIs come out of the Spend jar on payout day, right after the allowance lands.
+  const loanRepayments: ScheduledJobsOutcome["loanRepayments"] = [];
+  const loans = state.loans.map((loan) => {
+    if (loan.status !== "active") return loan;
+    if (!allowancesPaid.some((p) => p.kidId === loan.kidId)) return loan;
+    const spend = jarBalances(ledger, loan.kidId).spend;
+    const result = repayLoanDomain(loan, loanProgress(loan).nextDuePaise, spend, now);
+    if (result.entry) {
+      ledger = [...ledger, result.entry];
+      loanRepayments.push({ kidId: loan.kidId, amountPaise: result.paidPaise });
+    }
+    return result.loan;
+  });
   const interestAccrued: ScheduledJobsOutcome["interestAccrued"] = [];
   const interestRules = state.interestRules.map((rule) => {
     const saveBalance = jarBalances(ledger, rule.kidId).save;
@@ -485,7 +596,7 @@ export function runScheduledJobs(state: FamilyState, now: ISODateTime): Schedule
     }
     return accrued.rule;
   });
-  return { state: { ...state, ledger, allowanceRules, interestRules }, allowancesPaid, interestAccrued };
+  return { state: { ...state, ledger, allowanceRules, interestRules, loans }, allowancesPaid, interestAccrued, loanRepayments };
 }
 
 // ───────────────────────── billing ─────────────────────────

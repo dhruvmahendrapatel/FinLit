@@ -1,9 +1,10 @@
-import { AGE_BANDS, commands, describeCadence, formatINR, goalProgress, JAR_KINDS, rupees, type AllowanceCadence, type Weekday } from "@finlit/core";
+import { AGE_BANDS, commands, describeCadence, formatINR, goalProgress, JAR_KINDS, loansForKid, rupees, type AllowanceCadence, type Weekday } from "@finlit/core";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { StyleSheet, Switch, View } from "react-native";
 
 import { GoalCard, JarCard } from "@/components/kid";
+import { LoanCard } from "@/components/kid/LoanCard";
 import { Avatar, Button, Card, Chip, EmptyState, IconButton, ListRow, Money, Screen, SectionHeader, Text } from "@/components/ui";
 import { useTheme } from "@/design";
 import { useKidSummary } from "@/hooks/use-family";
@@ -35,6 +36,7 @@ export default function ParentKidDetail() {
   if (!summary) return null;
   const { kid, allowance, interestRule } = summary;
   const goals = state.goals.filter((g) => g.kidId === kid.id && g.status !== "redeemed");
+  const loans = loansForKid(state, kid.id).filter((l) => l.status !== "declined");
 
   const gift = (rs: number) =>
     tryCommand(() => dispatch((s, now) => commands.giftMoney(s, { kidId: kid.id, amountPaise: rupees(rs), from: "Nani" }, now))) &&
@@ -207,6 +209,17 @@ export default function ParentKidDetail() {
           ))}
         </View>
       </View>
+
+      {loans.length > 0 ? (
+        <View style={{ marginTop: space.xl }}>
+          <SectionHeader title="Family loans" emoji="🏦" subtitle="EMIs come out of the Spend jar on pocket-money day" />
+          <View style={{ gap: space.md }}>
+            {loans.map((l) => (
+              <LoanCard key={l.id} loan={l} />
+            ))}
+          </View>
+        </View>
+      ) : null}
 
       <View style={{ marginTop: space.xl }}>
         <SectionHeader title="Recent activity" emoji="🧾" />

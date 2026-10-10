@@ -1,13 +1,16 @@
-import { goalsForKid } from "@finlit/core";
+import { commands, goalsForKid, rupees } from "@finlit/core";
 import { useRouter } from "expo-router";
 import { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 
 import { GoalCard } from "@/components/kid";
-import { Button, Card, EmptyState, Money, Screen, Text } from "@/components/ui";
+import { LoanCard } from "@/components/kid/LoanCard";
+import { Button, Card, EmptyState, Icon, Money, Screen, SectionHeader, Text } from "@/components/ui";
 import { useTheme } from "@/design";
-import { useActiveKid, useKidSummary } from "@/hooks/use-family";
-import { useFamilyState } from "@/store/family-store";
+import { useActiveKid, useEntitlements, useKidSummary } from "@/hooks/use-family";
+import { tryCommand } from "@/lib/errors";
+import { useDispatch, useFamilyState } from "@/store/family-store";
+import { toast } from "@/store/toast-store";
 
 export default function KidGoals() {
   const { colors, space } = useTheme();
@@ -16,7 +19,18 @@ export default function KidGoals() {
   const summary = useKidSummary(kid?.id);
   const state = useFamilyState();
   const goals = useMemo(() => (kid ? goalsForKid(state, kid.id) : []), [state, kid]);
+  const ent = useEntitlements();
+  const dispatch = useDispatch();
   if (!kid || !summary) return null;
+  const loan = summary.activeLoan;
+  const payEarly = (rs: number) => {
+    if (!loan) return;
+    const ok = tryCommand(() => {
+      const res = dispatch((s, now) => commands.repayLoan(s, loan.id, rupees(rs), now));
+      toast({ title: `Paid ₹${Math.round(res.paidPaise / 100)} towards your loan`, body: res.loan.status === "repaid" ? "All paid off. Legend! 🎉" : undefined, emoji: "🧾", tone: "success" });
+    });
+    void ok;
+  };
   const active = goals.filter((g) => g.status === "active");
   const finished = goals.filter((g) => g.status !== "active");
 
@@ -51,6 +65,46 @@ export default function KidGoals() {
         {active.length === 0 ? <EmptyState emoji="🎯" title="No goals yet" body="A cricket bat? A cycle? Pick something and watch the bar fill up." actionLabel="Make a goal" onAction={() => router.push("/kid/goal/new")} /> : null}
       </View>
 
+      <View style={{ marginTop: space.xxl }}>
+        <SectionHeader title="Need it sooner?" emoji="🧾" subtitle="Borrow from Mum & Dad and pay back in EMIs" />
+        {loan ? (
+          <LoanCard loan={loan}>
+            {loan.status === "active" ? (
+              <View style={styles.wrap}>
+                <Text variant="caption" tone="muted" style={{ alignSelf: "center" }}>
+                  Pay early:
+                </Text>
+                {[50, 100, 200].map((a) => (
+                  <Button key={a} title={`₹${a}`} size="sm" variant="secondary" disabled={summary.jars.spend < rupees(Math.min(a, 1))} onPress={() => payEarly(a)} />
+                ))}
+              </View>
+            ) : null}
+          </LoanCard>
+        ) : ent.features.has("family_loans") ? (
+          <Card tint={colors.warningSoft} borderColor="transparent">
+            <View style={styles.loanRow}>
+              <Text style={{ fontSize: 32 }}>🏦</Text>
+              <View style={{ flex: 1 }}>
+                <Text variant="bodyStrong">Family loan</Text>
+                <Text variant="caption" tone="muted">
+                  Ask for up to ₹5,000 and repay from pocket money. Borrowing costs extra, so think first.
+                </Text>
+              </View>
+            </View>
+            <Button title="Borrow for it" size="sm" variant="accent" onPress={() => router.push("/kid/loan/new")} style={{ marginTop: space.md }} />
+          </Card>
+        ) : (
+          <Card tint={colors.premiumSoft} borderColor="transparent">
+            <View style={styles.loanRow}>
+              <Icon name="lock-closed" size={22} color={colors.premiumDark} />
+              <Text variant="caption" color="#6B4E00" style={{ flex: 1 }}>
+                Family loans are part of Family Premium. Ask a parent to unlock them.
+              </Text>
+            </View>
+          </Card>
+        )}
+      </View>
+
       {finished.length > 0 ? (
         <View style={{ marginTop: space.xxl, gap: space.md }}>
           <Text variant="h2">Reached 🎉</Text>
@@ -66,4 +120,6 @@ export default function KidGoals() {
 const styles = StyleSheet.create({
   header: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
   saveRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  loanRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  wrap: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
 });
