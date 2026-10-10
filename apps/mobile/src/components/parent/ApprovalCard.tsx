@@ -1,4 +1,5 @@
 import type { Chore, Kid } from "@finlit/core";
+import { Image } from "expo-image";
 import { StyleSheet, View } from "react-native";
 
 import { Avatar, Button, Card, Money, Text } from "@/components/ui";
@@ -31,6 +32,9 @@ export function ApprovalCard({ chore, kid, onApprove, onReject }: ApprovalCardPr
           <Money paise={chore.rewardPaise} variant="captionStrong" />
         </View>
       </View>
+      {chore.proofPhotoUri ? (
+        <Image source={{ uri: chore.proofPhotoUri }} style={[styles.proof, { borderRadius: radius.lg, marginTop: space.md }]} contentFit="cover" accessibilityLabel={`${kid?.name ?? "Kid"}'s proof photo`} />
+      ) : null}
       <View style={[styles.actions, { marginTop: space.md }]}>
         <Button title="Not yet" variant="surface" size="sm" onPress={onReject} />
         <Button title={`Approve · ₹${Math.round(chore.rewardPaise / 100)}`} size="sm" onPress={onApprove} style={styles.grow} />
@@ -43,6 +47,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", gap: 12 },
   text: { flex: 1, gap: 2 },
   reward: { paddingHorizontal: 10, paddingVertical: 6 },
+  proof: { width: "100%", height: 180 },
   actions: { flexDirection: "row", gap: 8 },
   grow: { flexGrow: 1 },
 });

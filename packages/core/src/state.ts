@@ -23,12 +23,15 @@ export interface FamilySettings {
   /** Soft daily limit for kid mode, in minutes */
   dailyKidMinutes: number;
   language: Language;
+  /** Local reminders: allowance day, streak at risk, pending approvals */
+  remindersEnabled: boolean;
 }
 
 export const DEFAULT_SETTINGS: FamilySettings = {
   parentAdConsent: false,
   dailyKidMinutes: 20,
   language: "en",
+  remindersEnabled: true,
 };
 
 export const STATE_VERSION = 1 as const;

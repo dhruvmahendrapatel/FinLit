@@ -10,10 +10,13 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ToastHost } from "@/components/ui";
 import { fontAssets, kidTheme, ThemeProvider } from "@/design";
+import { configureNotifications, syncReminders } from "@/lib/reminders";
+import { initSync } from "@/lib/sync";
 import { useFamilyStore } from "@/store/family-store";
 import { toast } from "@/store/toast-store";
 
 SplashScreen.preventAutoHideAsync();
+configureNotifications();
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts(fontAssets);
@@ -29,6 +32,7 @@ export default function RootLayout() {
   useEffect(() => {
     if (!hydrated || jobsRan.current) return;
     jobsRan.current = true;
+    void initSync();
     const result = dispatch(commands.runScheduledJobs);
     if (result.allowancesPaid.length > 0) {
       toast({ title: "Pocket money paid!", body: "Allowance landed in the jars", emoji: "💸", tone: "success" });
@@ -37,6 +41,16 @@ export default function RootLayout() {
       toast({ title: "Interest day 🏦", body: "Bank of Mum & Dad paid interest on Save jars", emoji: "📈" });
     }
   }, [hydrated, dispatch]);
+
+  // Keep local reminders in step with the family's state (debounced).
+  const state = useFamilyStore((s) => s.state);
+  useEffect(() => {
+    if (!hydrated) return undefined;
+    const id = setTimeout(() => {
+      syncReminders(state).catch(() => undefined);
+    }, 1500);
+    return () => clearTimeout(id);
+  }, [hydrated, state]);
 
   if (!fontsLoaded && !fontError) return null;
 
@@ -50,6 +64,7 @@ export default function RootLayout() {
             <Stack.Screen name="welcome" />
             <Stack.Screen name="onboarding" />
             <Stack.Screen name="who" />
+            <Stack.Screen name="join" />
             <Stack.Screen name="pin" options={{ presentation: "modal" }} />
             <Stack.Screen name="kid" />
             <Stack.Screen name="parent" />

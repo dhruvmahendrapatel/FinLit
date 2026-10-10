@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { emptyState, createDemoState, type FamilyState } from "@finlit/core";
+import { DEFAULT_SETTINGS, emptyState, createDemoState, type FamilyState } from "@finlit/core";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
@@ -37,18 +37,29 @@ export const useFamilyStore = create<FamilyStore>()(
       reset: () => set({ state: emptyState() }),
       dispatch: ((fn: (state: FamilyState, now: string) => FamilyState | WithState) => {
         const result = fn(get().state, new Date().toISOString());
-        if (isFamilyState(result)) {
-          set({ state: result });
-          return undefined;
-        }
-        set({ state: result.state });
-        return result;
+        const next = isFamilyState(result) ? result : result.state;
+        set({ state: next });
+        // Cloud sync (no-op when the build has no backend). Replayable form of this command.
+        void import("@/lib/sync").then(({ schedulePush }) =>
+          schedulePush([
+            (s, now) => {
+              const r = fn(s, now);
+              return isFamilyState(r) ? r : r.state;
+            },
+          ]),
+        );
+        return isFamilyState(result) ? undefined : result;
       }) as FamilyStore["dispatch"],
     }),
     {
       name: "chillar.family.v1",
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (store) => ({ state: store.state }),
+      merge: (persisted, current) => {
+        const saved = (persisted as { state?: FamilyState } | undefined)?.state;
+        if (!saved) return current;
+        return { ...current, state: { ...saved, settings: { ...DEFAULT_SETTINGS, ...saved.settings } } };
+      },
       onRehydrateStorage: () => (store) => {
         store?.setHydrated();
       },

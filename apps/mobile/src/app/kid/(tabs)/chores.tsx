@@ -1,4 +1,5 @@
 import { commands } from "@finlit/core";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 
@@ -15,6 +16,7 @@ type Tab = "todo" | "waiting" | "done";
 
 export default function KidChores() {
   const { space } = useTheme();
+  const router = useRouter();
   const kid = useActiveKid();
   const buckets = useChoresForKid(kid?.id);
   const today = useToday();
@@ -24,9 +26,7 @@ export default function KidChores() {
 
   const claim = (id: string) => tryCommand(() => dispatch((s, now) => commands.claimChore(s, id, kid.id, now))) && toast({ title: "It's yours!", emoji: "💪" });
   const unclaim = (id: string) => tryCommand(() => dispatch((s) => commands.unclaimChore(s, id, kid.id)));
-  const submit = (id: string) =>
-    tryCommand(() => dispatch((s, now) => commands.submitChore(s, id, kid.id, now, { note: "Done!" }))) &&
-    toast({ title: "Sent for approval", body: "Money lands when your parents say yes", emoji: "📨", tone: "success" });
+  const submit = (id: string) => router.push({ pathname: "/kid/chore/[id]", params: { id } });
 
   const todoCount = buckets.available.length + buckets.inProgress.length + buckets.needsRetry.length;
   const earnable = [...buckets.available, ...buckets.inProgress].reduce((s, c) => s + c.rewardPaise, 0);

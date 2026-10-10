@@ -57,6 +57,12 @@ useSessionStore                                  which kid is active, parent PIN
 * **PIN gate**: `/parent/_layout.tsx` redirects to `/pin` unless the session was unlocked in the last 10 minutes.
 * **Money is integer paise**: no floating-point drift; Indian digit grouping (₹12,34,567).
 
-## Backend (next)
+## Backend
 
-Core is designed to sit behind a sync layer: `FamilyState` is a plain JSON document keyed by family, commands are deterministic given `now`, and ids are injectable. A Supabase/Postgres backend with row-level security per family and a `commands` log is the intended next step; the app keeps working offline against the persisted state.
+Core sits behind a sync layer: `FamilyState` is a plain JSON document keyed by family, commands are deterministic given `now`, and ids are injectable. The Supabase schema (RLS per family, RPCs, realtime) and the client sync protocol with conflict replay live in `supabase/migrations` and `apps/mobile/src/lib/sync.ts`; they activate only when `EXPO_PUBLIC_SUPABASE_*` is set. See `docs/backend.md`. The app keeps working offline against the persisted state.
+
+## Parental controls at runtime
+
+* `useKidTimer` counts foreground seconds in kid mode and `kid/_layout.tsx` swaps the whole kid stack for the `TimeUp` screen once `settings.dailyKidMinutes` is spent; a parent PIN grants 10 more minutes.
+* `lib/reminders.ts` re-plans local notifications from state (allowance day, streak nudge, approvals) and is a no-op on web.
+* `lib/export.ts` writes a PIN-redacted JSON export and shares it (download on web).

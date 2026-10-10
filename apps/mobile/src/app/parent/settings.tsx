@@ -2,11 +2,13 @@ import { commands, CONSENT_VERSION, type Language } from "@finlit/core";
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, Switch, TextInput, View } from "react-native";
+import { Platform, StyleSheet, Switch, TextInput, View } from "react-native";
 
-import { Button, Card, Chip, IconButton, ListRow, Screen, SectionHeader, Text } from "@/components/ui";
+import { Button, Card, Chip, Icon, IconButton, ListRow, Screen, SectionHeader, Text } from "@/components/ui";
 import { useTheme } from "@/design";
 import { tryCommand } from "@/lib/errors";
+import { shareFamilyExport } from "@/lib/export";
+import { requestReminderPermission } from "@/lib/reminders";
 import { useDispatch, useFamilyState, useFamilyStore } from "@/store/family-store";
 import { useSessionStore } from "@/store/session-store";
 import { toast } from "@/store/toast-store";
@@ -23,6 +25,28 @@ export default function Settings() {
   const [pin, setPin] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const version = (Constants.expoConfig?.version ?? "0.1.0") as string;
+
+  const exportData = async () => {
+    try {
+      const outcome = await shareFamilyExport(state);
+      if (outcome === "unavailable") toast({ title: "Sharing isn’t available on this device", emoji: "📦" });
+      else toast({ title: outcome === "downloaded" ? "Export downloaded" : "Export ready to share", body: "A JSON copy of your family’s data, PIN redacted", emoji: "📦", tone: "success" });
+    } catch {
+      toast({ title: "Export failed", body: "Please try again", emoji: "😕", tone: "danger" });
+    }
+  };
+
+  const toggleReminders = async (on: boolean) => {
+    if (on && Platform.OS !== "web") {
+      const granted = await requestReminderPermission();
+      if (!granted) {
+        toast({ title: "Notifications are off for Chillar", body: "Enable them in your phone’s settings to get reminders", emoji: "🔕" });
+        return;
+      }
+    }
+    dispatch((s) => commands.updateSettings(s, { remindersEnabled: on }));
+    toast({ title: on ? "Reminders on" : "Reminders off", body: on ? "Allowance day, streak nudges and approvals" : undefined, emoji: on ? "🔔" : "🔕" });
+  };
 
   const savePin = () => {
     if (tryCommand(() => dispatch((s) => commands.setParentPin(s, pin)))) {
@@ -79,6 +103,21 @@ export default function Settings() {
       </View>
 
       <View style={{ marginTop: space.xl }}>
+        <SectionHeader title="Reminders" emoji="🔔" />
+        <Card>
+          <View style={styles.switchRow}>
+            <View style={{ flex: 1 }}>
+              <Text variant="bodyStrong">Helpful nudges</Text>
+              <Text variant="caption" tone="muted">
+                Pocket-money day at 8am, a streak nudge at 6:30pm, and a reminder when chores wait for approval. Local only, nothing leaves the phone.
+              </Text>
+            </View>
+            <Switch value={state.settings.remindersEnabled} onValueChange={(v) => void toggleReminders(v)} trackColor={{ true: colors.primary, false: colors.borderStrong }} thumbColor="#fff" />
+          </View>
+        </Card>
+      </View>
+
+      <View style={{ marginTop: space.xl }}>
         <SectionHeader title="Privacy & consent" emoji="🛡️" subtitle={`Notice v${CONSENT_VERSION} · consent given ${state.consent ? new Date(state.consent.grantedAt).toLocaleDateString("en-IN") : "—"}`} />
         <Card>
           <View style={styles.switchRow}>
@@ -91,7 +130,7 @@ export default function Settings() {
             <Switch value={state.settings.parentAdConsent} onValueChange={(v) => dispatch((s) => commands.updateSettings(s, { parentAdConsent: v }))} trackColor={{ true: colors.primary, false: colors.borderStrong }} thumbColor="#fff" />
           </View>
           <View style={[styles.wrap, { marginTop: space.lg }]}>
-            <Button title="Export my family’s data" variant="surface" size="sm" onPress={() => toast({ title: "Export requested", body: "A JSON copy of your family's data will be emailed to you (demo)", emoji: "📦" })} />
+            <Button title="Export my family’s data" variant="surface" size="sm" icon={<Icon name="download-outline" size={18} />} onPress={() => void exportData()} />
           </View>
         </Card>
       </View>

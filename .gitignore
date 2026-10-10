@@ -37,3 +37,6 @@ yarn-error.*
 
 # scratch
 /playwright-screens/
+
+# e2e artifacts
+apps/mobile/e2e/output/

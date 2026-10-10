@@ -39,13 +39,15 @@ FinLit/
 │       ├── components/     ui (Button, Card, ProgressRing…), kid, parent, monetization, navigation
 │       ├── store/          zustand + AsyncStorage persistence, session (PIN unlock), billing, toasts
 │       └── hooks/, lib/
-├── packages/core/          Pure-TypeScript domain + 45 unit tests (vitest). No React.
+├── packages/core/          Pure-TypeScript domain + 47 unit tests (vitest). No React.
 │   └── src/
 │       ├── money, ledger, chores, goals, interest, allowance, lessons, streaks
 │       ├── entitlements, billing (RevenueCat-shaped), ads policy, consent (DPDP)
 │       ├── state, commands (every rule in one place), selectors, seed (demo family)
-│       └── content/        17 lessons across 9 NCFE/CBSE-mapped units, parent guides, rewards
-└── docs/                   architecture, monetization, design, roadmap
+│       └── content/        29 lessons across 9 NCFE/CBSE-mapped units, parent guides, rewards
+├── supabase/migrations/    Postgres schema, RLS and RPCs for family sync (env-gated, not yet provisioned)
+├── .github/workflows/      CI: tests · typecheck · lint · web build · Playwright e2e
+└── docs/                   architecture, monetization, design, backend, privacy, roadmap
 ```
 
 ## Run it
@@ -58,6 +60,8 @@ npm run lint                # expo lint (React Compiler rules on)
 
 npm run mobile              # Expo dev server → press i / a / w
 npm run mobile:web          # web preview in the browser
+
+npm run export:web -w apps/mobile && npm run e2e -w apps/mobile   # Playwright smoke test over the web build
 ```
 
 First launch shows the welcome screen. Tap **Try the demo family** to load the Sharmas from Pune (Aarav 10, Meera 7, parent PIN `1234`), or set up your own family.
@@ -81,9 +85,19 @@ Free core for every family, plus five streams modelled in the research (₹160 p
 
 Details and the pricing rationale: `docs/monetization.md`.
 
-## Status
+## Status: MVP
 
-This is the MVP foundation: the full kid and parent loops work end-to-end on device state, with a mock billing provider and placeholder ad slots. Next up (see `docs/roadmap.md`): backend + auth, RevenueCat/store products, DigiLocker consent, school ERP connector, Hindi content, cartoon episodes.
+The full kid and parent loops work end-to-end on device state, verified by an automated smoke test in CI:
+
+- Chores with **photo proof** (camera/gallery), approval queue with the photo, pay-out into jars
+- Goals with parent match, Bank of Mum & Dad interest, compounding chart
+- 29 lessons across 9 units for all three age bands, streaks, XP, levels
+- Family Premium paywall with a mock billing provider; ad policy enforced (contextual-only for kids, none on Premium)
+- Parental controls: PIN gate, **enforced daily kid-mode time limit** with parent override, DPDP consent record, **JSON data export**, delete-all
+- **Local reminders** (allowance day, streak nudge, pending approvals)
+- Cloud sync and kid-device pairing are implemented and env-gated; see `docs/backend.md` to provision
+
+Next (see `docs/roadmap.md`): provision the backend, RevenueCat/store products, DigiLocker consent, Hindi content, school ERP connector.
 
 ## License
 
