@@ -18,7 +18,7 @@ Mapped to the research's phases and 90-day plan. ✅ = in this repo.
 - ✅ Enforced daily kid-mode time limit with a gentle stop screen and parent PIN override
 - ✅ JSON data export and delete-all (DPDP access, portability, erasure)
 - ✅ Local reminders: allowance day, streak nudge, pending approvals
-- ✅ Cloud sync + kid-device pairing, built and env-gated (Supabase schema, RLS, RPCs, realtime, conflict replay)
+- ✅ Cloud sync + kid-device pairing on a live Supabase project in Mumbai (schema, RLS, RPCs, realtime, conflict replay, chore-photo Storage)
 - ✅ Family loans & EMIs: kid requests, parent sets 0–24% rate, EMIs auto-deduct from the Spend jar on pocket-money day, early repayment
 - ✅ Chai-stall simulation: five days of price, cups and weather with cost/revenue/profit feedback and XP
 - ✅ Honest paywall: AI coach, parent insights and school link are labelled "coming soon"
@@ -27,7 +27,7 @@ Mapped to the research's phases and 90-day plan. ✅ = in this repo.
 
 ## Next 90 days
 
-1. **Provision the backend** – create the Supabase project (Mumbai region), apply `supabase/migrations`, enable phone OTP + anonymous auth, set EAS secrets; run the parent-phone → kid-phone pairing smoke test. Add Supabase Storage for chore photos.
+1. **Finish backend sign-in** – in the Supabase dashboard enable Anonymous sign-ins and Phone OTP with an Indian SMS provider (MSG91/Twilio); then run the parent-phone → kid-phone pairing smoke test with a photo chore.
 2. **Store billing** – RevenueCat adapter for `BillingProvider`, products `chillar_premium_*`, server-side receipt validation.
 3. **DigiLocker consent** – verifiable parental consent token in the pilot (DPDP Rule 10).
 4. **Hindi UI** – lessons are translated; app chrome (buttons, labels) is still English. Native-speaker review of the lesson translations.

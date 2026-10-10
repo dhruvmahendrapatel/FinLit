@@ -1,6 +1,6 @@
 # Backend & sync
 
-The MVP runs entirely on-device. Cloud sync is built and env-gated so the Parent app and Kid app can share one family across phones once a backend is provisioned. Nothing is provisioned yet.
+Every build works fully on-device; cloud sync lets the Parent app and Kid app share one family across phones. The backend is a Supabase project in Mumbai (`ap-south-1`, ref `fgrlwxzpmeffljphhmqb`) and the app ships with its URL and publishable key as defaults, so a fresh install can sign in and link a family without any configuration.
 
 ## Data model (Supabase / Postgres)
 
@@ -10,7 +10,7 @@ The MVP runs entirely on-device. Cloud sync is built and env-gated so the Parent
 | `family_members` | (family_id, user_id) → role `parent` \| `kid`, `kid_id` for kid devices |
 | `family_state` | one JSON document per family (`FamilyState`), `revision` for optimistic concurrency |
 | `command_log` | optional audit trail of command names/payloads |
-| `pairing_codes` | 6-digit, 15-minute codes a parent mints for a kid's phone |
+| `pairing_codes` | 6-digit, 15-minute codes a parent mints for a kid's phone; rows are superseded or marked `redeemed_at`, never deleted |
 
 Row-level security scopes every row to family membership. Writes go through `security definer` RPCs:
 
@@ -19,7 +19,11 @@ Row-level security scopes every row to family membership. Writes go through `sec
 * `create_pairing_code(family, kid_id)` / `redeem_pairing_code(code)` — kid device joins as that kid
 * `my_membership()` — which family and role the current user has
 
-`family_state` is in the realtime publication, so every open device gets updates live.
+All RPCs are `authenticated`-only (kid devices sign in anonymously and still carry that role); nothing is callable with the bare publishable key. `family_state` is in the realtime publication, so every open device gets updates live.
+
+## Chore photo storage
+
+Private bucket `chore-proofs`, 5 MB limit, images only. Object paths are `<family_id>/<chore_id>/<timestamp>.<ext>` and the Storage policies reuse `is_family_member()` on the first path segment, so a photo is only ever readable by that kid's own family. The app stores `supabase://chore-proofs/<path>` in `Chore.proofPhotoUri` and resolves it to a one-hour signed URL for display (`apps/mobile/src/lib/storage.ts`, `ProofImage`). When the family is not cloud-linked, or the upload fails, the local file URI is used and the flow never blocks.
 
 ## Auth
 
@@ -35,14 +39,20 @@ Row-level security scopes every row to family membership. Writes go through `sec
 
 Because the entire state is one document, this is last-writer-wins at the document level with command replay to avoid losing work. It is the right trade-off for a family of a few devices; a per-entity CRDT is unnecessary at this scale.
 
-## Provisioning checklist
+## Provisioning status
 
-1. Create a Supabase project (India/Mumbai region `ap-south-1` for DPDP data residency).
-2. `supabase link` + `supabase db push` (see `supabase/README.md`).
-3. Authentication › Providers: enable Phone (Twilio/MSG91) and Anonymous sign-ins.
-4. Set `EXPO_PUBLIC_SUPABASE_URL` / `EXPO_PUBLIC_SUPABASE_ANON_KEY` as EAS secrets.
-5. Smoke-test: parent signs in → Family › Cloud sync › Upload → Get code → kid phone joins.
+| Step | Status |
+|---|---|
+| Supabase project in `ap-south-1` | Done (`chillar`, ref `fgrlwxzpmeffljphhmqb`) |
+| Schema, RLS, RPCs (`20261010120000_init`) | Applied |
+| Storage bucket + policies (`20261010170000_chore_proofs_bucket`) | Applied |
+| Security advisor | Clean apart from the expected "signed-in users can call SECURITY DEFINER RPCs" notice |
+| App defaults (`app.config.ts` → `extra.supabaseUrl/AnonKey`) | Shipped; `EXPO_PUBLIC_SUPABASE_URL=off` builds a no-cloud app |
+| Anonymous sign-ins (dashboard) | **To do** — Authentication › Providers |
+| Phone OTP + SMS provider (dashboard) | **To do** — Authentication › Providers (MSG91/Twilio) |
+
+Smoke-test once the two dashboard toggles are on: parent signs in → Family › Cloud sync › Upload → Get code → kid phone joins → kid submits a chore with a photo → parent sees the photo on the Approvals card.
 
 ## Not yet covered
 
-Photo proof uploads (currently local URIs; add Supabase Storage with family-scoped paths), server-side receipt validation for Premium, and the school ERP connector.
+Server-side receipt validation for Premium, a purge job for old pairing codes and orphaned proof photos, and the school ERP connector.

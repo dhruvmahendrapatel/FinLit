@@ -2,14 +2,20 @@ import "react-native-url-polyfill/auto";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import Constants from "expo-constants";
 import { AppState, Platform } from "react-native";
 
-const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
-const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+/**
+ * Backend coordinates come from app.config.ts `extra` (env override → shipped default).
+ * Setting EXPO_PUBLIC_SUPABASE_URL=off builds a fully on-device app with no cloud features.
+ */
+const extra = (Constants.expoConfig?.extra ?? {}) as { supabaseUrl?: string; supabaseAnonKey?: string };
+const url = extra.supabaseUrl && extra.supabaseUrl !== "off" ? extra.supabaseUrl : undefined;
+const anonKey = url ? extra.supabaseAnonKey : undefined;
 
 /**
  * Supabase client, or null when the build has no backend configured. Every cloud feature
- * checks `cloudEnabled` first so the app runs fully on-device by default.
+ * checks `cloudEnabled` first so the app still runs fully on-device.
  */
 export const supabase: SupabaseClient | null =
   url && anonKey

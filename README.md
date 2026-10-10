@@ -45,7 +45,7 @@ FinLit/
 │       ├── entitlements, billing (RevenueCat-shaped), ads policy, consent (DPDP)
 │       ├── state, commands (every rule in one place), selectors, seed (demo family)
 │       └── content/        29 lessons across 9 NCFE/CBSE-mapped units (English + Hindi), parent guides, rewards
-├── supabase/migrations/    Postgres schema, RLS and RPCs for family sync (env-gated, not yet provisioned)
+├── supabase/migrations/    Postgres schema, RLS, RPCs and Storage policies for family sync (live in Mumbai)
 ├── .github/workflows/      CI: tests · typecheck · lint · web build · Playwright e2e
 └── docs/                   architecture, monetization, design, backend, privacy, roadmap
 ```
@@ -97,9 +97,9 @@ The full kid and parent loops work end-to-end on device state, verified by an au
 - **Hindi** versions of every lesson, switchable from Settings
 - Parental controls: PIN gate, **enforced daily kid-mode time limit** with parent override, DPDP consent record, **JSON data export**, delete-all
 - **Local reminders** (allowance day, streak nudge, pending approvals)
-- Cloud sync and kid-device pairing are implemented and env-gated; see `docs/backend.md` to provision
+- Cloud sync, kid-device pairing and chore-photo storage run on Supabase (ap-south-1); see `docs/backend.md`
 
-Next (see `docs/roadmap.md`): provision the backend, RevenueCat/store products, DigiLocker consent, Hindi content, school ERP connector.
+Next (see `docs/roadmap.md`): SMS provider for parent OTP, RevenueCat/store products, DigiLocker consent, school ERP connector.
 
 ## License
 
